@@ -1,0 +1,16 @@
+<package>
+  <description brief="classifier">
+
+     classifier
+
+  </description>
+  <author>Griswald Brooks</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/classifier</url>
+  <depend package="sensor_msgs"/>
+  <depend package="roscpp"/>
+
+</package>
+
+
