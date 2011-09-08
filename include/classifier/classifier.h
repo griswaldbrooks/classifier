@@ -5,6 +5,7 @@
 #include <vector>
 #include <math.h>
 #include <iostream>
+#include <float.h>
 
 #define CIRCLE 1
 #define LINE   2
@@ -85,6 +86,8 @@ namespace classifier{
   void DLSR(const std::vector<Point>& pts, float& slope, float& intercept);
   Point return_point(const float& slope, const float& intercept, const Point& pt_in);
   Point return_point_circle(const Circle& circle, const Point& pt);
+  Point return_mean_point(const std::vector<Point>& pts);
+  float return_distance(const Point& p1, const Point& p2);
   void calc_center_radius(const std::vector<Point>& pts, Point& center, float& radius);
   
   float is_line(const std::vector<Point>& pts, Feature*& ftr_ptr);
@@ -97,8 +100,10 @@ namespace classifier{
   void parse_scan(const sensor_msgs::LaserScan& scan, std::vector< std::vector<Point> >& vv_pts);
   void produce_feature(std::vector<Point> pts, std::vector<Feature*>& features);
   bool comp_pair_first(std::pair<float, std::vector<Feature*> > p1, std::pair<float, std::vector<Feature*> > p2);
+  bool comp_pair_second(std::pair<int, int > p1, std::pair<int, int > p2);
   //Feature* produce_feature(std::vector<Point> pts);
   void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks);
+  void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Feature*> >& prev_land, std::vector<Feature*>& landmarks);
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters);
   //void produce_collection_from_points(std::vector<std::vector<Point> >& point_sets, std::vector<Feature*>& landmarks);
 }

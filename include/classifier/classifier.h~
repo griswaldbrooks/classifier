@@ -87,18 +87,20 @@ namespace classifier{
   Point return_point_circle(const Circle& circle, const Point& pt);
   void calc_center_radius(const std::vector<Point>& pts, Point& center, float& radius);
   
-  bool is_line(const std::vector<Point>& pts, Feature*& ftr_ptr);
-  bool is_circle(const std::vector<Point>& pts, Feature*& ftr_ptr);
-  bool is_multiple_lines(int k, const std::vector<Point>& pts, std::vector< std::vector<Point> >& newset);
+  float is_line(const std::vector<Point>& pts, Feature*& ftr_ptr);
+  float is_circle(const std::vector<Point>& pts, Feature*& ftr_ptr);
+  float is_multiple_lines(int k, const std::vector<Point>& pts, std::vector<Feature* >& features);
 
   void k_means(int k, const std::vector<Point>& old_set, std::vector< std::vector<Point> >& clusters);
   void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<Point> >& clusters);
   
   void parse_scan(const sensor_msgs::LaserScan& scan, std::vector< std::vector<Point> >& vv_pts);
-  Feature* produce_feature(std::vector<Point> pts);
+  void produce_feature(std::vector<Point> pts, std::vector<Feature*>& features);
+  bool comp_pair_first(std::pair<float, std::vector<Feature*> > p1, std::pair<float, std::vector<Feature*> > p2);
+  //Feature* produce_feature(std::vector<Point> pts);
   void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks);
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters);
-  void produce_collection_from_points(std::vector<std::vector<Point> >& point_sets, std::vector<Feature*>& landmarks);
+  //void produce_collection_from_points(std::vector<std::vector<Point> >& point_sets, std::vector<Feature*>& landmarks);
 }
 
 #endif

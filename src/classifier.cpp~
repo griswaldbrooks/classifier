@@ -17,25 +17,6 @@ namespace classifier{
   Circle::Circle():radius(0), type(CIRCLE){}
   Circle::Circle(const Point& center, const float& radius):center(center), radius(radius), type(CIRCLE){}
   Circle::Circle(const std::vector<Point>& pts):type(CIRCLE){
-    /*
-    std::vector<Point> three_pts;
-    Point center_est;
-    float radius_est;
-
-    //Average
-    for(float ndx = 1; ndx < (pts.size() - 1); ndx++){
-      three_pts.clear();
-      three_pts.push_back(pts[ndx - 1]);
-      three_pts.push_back(pts[ndx]);
-      three_pts.push_back(pts[ndx + 1]);
-
-      calc_center_radius(three_pts, center_est, radius_est);
-
-      center.x = (1/ndx)*center_est.x + ((ndx - 1)/ndx)*center.x;
-      center.y = (1/ndx)*center_est.y + ((ndx - 1)/ndx)*center.y;
-      radius = (1/ndx)*radius_est + ((ndx - 1)/ndx)*radius;
-    }
-    */
     float avg_x, avg_y, u_c, v_c;
     float s_dxx, s_dyy, s_dxy, s_dxxx, s_dyyy, s_dxyy, s_dyxx;
     avg_x = avg_y = 0;
@@ -621,7 +602,8 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     temp_pair.first = is_multiple_lines(2, pts, temp_pair.second);
     vars_ftrs.push_back(temp_pair);
     
-    std::vector<std::pair<float, std::vector<Feature*> > >::iterator min_ftr = min_element(vars_ftrs.begin(), vars_ftrs.end(), comp_pair_first);
+    std::vector<std::pair<float, std::vector<Feature*> > >::iterator min_ftr;
+    min_ftr = min_element(vars_ftrs.begin(), vars_ftrs.end(), comp_pair_first);
     if(min_ftr->first < VAR_THRESH){
       features = min_ftr->second;
     }
