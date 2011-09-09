@@ -103,7 +103,11 @@ namespace classifier{
   bool comp_pair_second(std::pair<int, int > p1, std::pair<int, int > p2);
   //Feature* produce_feature(std::vector<Point> pts);
   void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks);
-  void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Feature*> >& prev_land, std::vector<Feature*>& landmarks);
+  void produce_collection(const sensor_msgs::LaserScan& scan, 
+			  std::vector<std::pair<std::vector<Feature*>, 
+						std::vector<std::vector<Point> >::iterator> >& prev_land, 
+			  std::vector<Feature*>& landmarks);
+
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters);
   //void produce_collection_from_points(std::vector<std::vector<Point> >& point_sets, std::vector<Feature*>& landmarks);
 }

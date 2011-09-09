@@ -691,8 +691,13 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     return p1.second < p2.second;
   }
 
-  void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Feature*> >& prev_land, std::vector<Feature*>& landmarks){
+  void produce_collection(const sensor_msgs::LaserScan& scan, 
+			  std::vector<std::pair<std::vector<Feature*>, 
+						std::vector<std::vector<Point> >::iterator> >& prev_land, 
+			    std::vector<Feature*>& landmarks){
+
     std::vector< std::vector<Point> > vv_pts;
+    std::vector<std::pair<Feature*, std::vector<std::vector<Point> >::iterator> > ftr_and_pts; 
     std::vector<Feature*> temp_features;
     const float DIST_THRESH 6.0; //cm
     
@@ -705,6 +710,8 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       if(temp_features.size()){
 	for(size_t iter = 0; iter < temp_features.size(); iter++){
 	  landmarks.push_back(temp_features[iter]);
+	  std::pair<
+	  ftr_and_pts.push_back();
 	}
       }
 
@@ -752,8 +759,12 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       
 	std::vector<pair<int, int> >::iterator max_type;
 	max_type = max_element(type_counts.begin(), type_counts.end(), comp_pair_second);
-      
-	landmark.push_back();
+	if(max_type == CIRCLE){
+	  landmark.push_back(Circle(,));
+	}
+	else if(max_type == LINE){
+	  landmark.push_back(Line_seg(,));
+	}
       }
     }
     
