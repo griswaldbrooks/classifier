@@ -25,6 +25,7 @@ namespace classifier{
     Point();
     Point(const float& x, const float& y);
     bool operator!=(const Point& rhs) const;
+    bool operator==(const Point& rhs) const;
     float x, y;
   };
 

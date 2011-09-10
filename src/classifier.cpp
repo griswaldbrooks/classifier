@@ -13,6 +13,9 @@ namespace classifier{
     if(y != rhs.y){return true;}
     return false;
   }
+  bool Point::operator==(const Point& rhs) const{
+    return !(*this!=rhs);
+  }
 
   Circle::Circle():radius(0), type(CIRCLE){}
   Circle::Circle(const Point& center, const float& radius):center(center), radius(radius), type(CIRCLE){}
@@ -387,6 +390,43 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       new_lines[ndx] = std::make_pair(slope, intercept);
     }
   }
+
+  //Check neighbors for cluster assignment correction
+  //Find cluster assignment
+  std::vector<std::pair<Point, size_t> > pt_cl; //Vector of points in their original order with cluster association
+  for(size_t p_ndx = 0; p_ndx < old_set.size(); p_ndx++){
+    for(size_t c_ndx = 0; c_ndx < clusters.size(); c_ndx++){
+      std::vector<Point>::iterator iter;
+      iter = find(clusters[c_ndx].begin(), clusters[c_ndx].end(), old_set[p_ndx]);
+      if(iter != clusters[c_ndx].end()){
+	//We found it
+	pt_cl.push_back(std::make_pair(old_set[p_ndx], c_ndx));
+	break;
+      }
+    }
+  }
+
+  //Find cluster assignment of neighbors
+  for(size_t pc_ndx = 1; pc_ndx < (pt_cl.size() - 1); pc_ndx++){
+    if((pt_cl[pc_ndx].second == pt_cl[pc_ndx - 1].second) &&
+       (pt_cl[pc_ndx].second == pt_cl[pc_ndx + 1].second)){
+      //No reassignment necessary
+    }
+    else if(pt_cl[pc_ndx - 1].second == pt_cl[pc_ndx +1].second){
+      //If its neighbors are in the same cluster, switch assignment
+      pt_cl[pc_ndx].second = pt_cl[pc_ndx - 1].second;
+    }
+  }
+  
+  //Reassign the clusters
+  for(size_t c_ndx = 0; c_ndx < clusters.size(); c_ndx++){
+    clusters[c_ndx].clear();
+  }
+  for(size_t pc_ndx = 0; pc_ndx < pt_cl.size(); pc_ndx++){
+    clusters[pt_cl[pc_ndx].second].push_back(pt_cl[pc_ndx].first);
+  }
+  
+
   
   
 }
@@ -584,7 +624,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
   }
   /**/
   void produce_feature(std::vector<Point> pts, std::vector<Feature*>& features){
-    const float VAR_THRESH = 0.2;
+    const float VAR_THRESH = 5.0; //0.2
     Feature* ftr_ptr = NULL;
     //This vector holds the variances of the points to their associated feature(s)
     std::vector<std::pair<float, std::vector<Feature*> > > vars_ftrs;
@@ -604,8 +644,12 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     
     std::vector<std::pair<float, std::vector<Feature*> > >::iterator min_ftr;
     min_ftr = min_element(vars_ftrs.begin(), vars_ftrs.end(), comp_pair_first);
+
     if(min_ftr->first < VAR_THRESH){
       features = min_ftr->second;
+    }
+    else{
+    std::cout << "-------->Rejected Feature Variance: " << min_ftr->first << std::endl;
     }
   }
 
@@ -690,7 +734,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
   bool comp_pair_second(std::pair<int, int > p1, std::pair<int, int > p2){
     return p1.second < p2.second;
   }
-
+  /*
   void produce_collection(const sensor_msgs::LaserScan& scan, 
 			  std::vector<std::pair<std::vector<Feature*>, 
 						std::vector<std::vector<Point> >::iterator> >& prev_land, 
@@ -757,19 +801,19 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	  }  
 	}
       
-	std::vector<pair<int, int> >::iterator max_type;
+	std::vector<std::pair<int, int> >::iterator max_type;
 	max_type = max_element(type_counts.begin(), type_counts.end(), comp_pair_second);
-	if(max_type == CIRCLE){
-	  landmark.push_back(Circle(,));
+	if(max_type->second() == CIRCLE){
+	  landmark.push_back(Circle(Point(0,0),0));
 	}
-	else if(max_type == LINE){
-	  landmark.push_back(Line_seg(,));
+	else if(max_type->second() == LINE){
+	  landmark.push_back(Line_seg(Point(0,0),Point(0,0)));
 	}
       }
     }
     
   }
-
+  */
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters){
     std::vector< std::vector<Point> > vv_pts;
     
