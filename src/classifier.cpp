@@ -308,7 +308,7 @@ namespace classifier{
     
     
   }
-
+/*
 void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<Point> >& clusters){
   //NOTE: The number of elements in the set must be larger than k
 
@@ -321,33 +321,33 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
   old_lines.resize(k);		     
   distances.resize(k);
   std::vector<Point> temp_set = old_set;
-  /*
+  
   //Generate initial lines via Random Partition
   //Place points into clusters
   //Ensure each cluster has at least one point
-  for(int iter = 0; iter < k; iter++){
-    if(iter%2){ clusters[iter].push_back(temp_set.front());}
-    else{ clusters[iter].push_back(temp_set.back());}
-    temp_set.pop_back();
-  }
+//  for(int iter = 0; iter < k; iter++){
+//    if(iter%2){ clusters[iter].push_back(temp_set.front());}
+//    else{ clusters[iter].push_back(temp_set.back());}
+//    temp_set.pop_back();
+//  }
   //Randomly place the rest
-  while(temp_set.size()){
-    int r_ndx = rand() % k;
-    clusters[r_ndx].push_back(temp_set.back());
-    temp_set.pop_back();
-  }
-  */
-  /*
+//  while(temp_set.size()){
+//    int r_ndx = rand() % k;
+//    clusters[r_ndx].push_back(temp_set.back());
+//    temp_set.pop_back();
+//  }
+  
+  
   //Generate initial lines via end point iteration round robin
-  while(temp_set.size()){
-    for(int iter = 0; iter < k; iter++){
-      if(temp_set.size()){
-	clusters[iter].push_back(temp_set.back());
-	temp_set.pop_back();
-      }
-    }
-  }
-  */
+//  while(temp_set.size()){
+//    for(int iter = 0; iter < k; iter++){
+//      if(temp_set.size()){
+//	clusters[iter].push_back(temp_set.back());
+//	temp_set.pop_back();
+//      }
+//    }
+//  }
+  
   //Generate initial clusters via k means
   k_means(k, old_set, clusters);
   std::cout << "Initial lines: " << std::endl;
@@ -405,6 +405,115 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       }
     }
   }
+
+  //Find cluster assignment of neighbors
+  for(size_t pc_ndx = 1; pc_ndx < (pt_cl.size() - 1); pc_ndx++){
+    if((pt_cl[pc_ndx].second == pt_cl[pc_ndx - 1].second) &&
+       (pt_cl[pc_ndx].second == pt_cl[pc_ndx + 1].second)){
+      //No reassignment necessary
+    }
+    else if(pt_cl[pc_ndx - 1].second == pt_cl[pc_ndx +1].second){
+      //If its neighbors are in the same cluster, switch assignment
+      pt_cl[pc_ndx].second = pt_cl[pc_ndx - 1].second;
+    }
+  }
+  
+  //Reassign the clusters
+  for(size_t c_ndx = 0; c_ndx < clusters.size(); c_ndx++){
+    clusters[c_ndx].clear();
+  }
+  for(size_t pc_ndx = 0; pc_ndx < pt_cl.size(); pc_ndx++){
+    clusters[pt_cl[pc_ndx].second].push_back(pt_cl[pc_ndx].first);
+  }
+  
+
+  
+  
+}
+*/
+
+void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<Point> >& clusters){
+  //NOTE: The number of elements in the set must be larger than k
+
+  //Generate clusters
+  std::vector<std::pair<float,float> > new_lines, old_lines; //slope, intercept
+  std::vector<float> distances;
+
+  clusters.resize(k);
+  new_lines.resize(k);
+  old_lines.resize(k);		     
+  distances.resize(k);
+  //std::vector<Point> temp_set = old_set;
+  std::vector<std::pair<Point, size_t> > pt_cl; //Vector of points in their original order with cluster association
+  // Associate all points with some cluster, default association to cluster k (since the value of k will not 
+  // actually be a cluster assignment
+  for(size_t ndx = 0; ndx < old_set.size(); ndx++){
+    pt_cl.push_back(std::make_pair(old_set[ndx], k));
+  }
+
+  //Generate initial lines via Random Partition
+  //Place points into clusters
+  //Ensure each cluster has at least one point
+  //for(size_t iter = 0; iter < k; iter++){
+  //pt_cl[iter].second = iter;
+  //}
+  //Randomly assign the rest
+  //for(size_t ndx = 0; ndx < pt_cl.size(); ndx++){
+  //size_t r_cl = rand() % k;
+  //if(pt_cl[ndx].second == k){
+  //pt_cl[ndx].second = r_cl;
+  //}
+  //}
+
+  //Generate initial clusters via k means
+  k_means(k, old_set, clusters);
+
+  std::cout << "Initial lines: " << std::endl;
+  //Generate lines, reset clusters
+  for(int iter = 0; iter < k; iter++){
+    float slope, intercept;
+    DLSR(clusters[iter], slope, intercept);
+    new_lines[iter] = std::make_pair(slope, intercept);
+    clusters[iter].clear();
+  }
+  std::cout << std::endl;
+  
+  //Start main loop
+  while(old_lines != new_lines){
+
+    
+    //Reassign points
+    for(size_t ndx = 0; ndx < pt_cl.size(); ndx++){
+      //Determine the distances from each point to each line
+      for(int iter = 0; iter < k; iter++){
+	Point pt_on_line = return_point(new_lines[iter].first, new_lines[iter].second, pt_cl[ndx].first);
+	distances[iter] = return_distance(pt_on_line, pt_cl[ndx].first);
+      }
+      std::vector<float>::iterator k_itr = min_element(distances.begin(), distances.end());
+      int k_ndx = k_itr - distances.begin();
+      pt_cl[ndx].second = k_ndx;
+    }
+
+    //Clear clusters
+    for(size_t ndx = 0; ndx < k; ndx++){
+      clusters[ndx].clear();
+    }
+    // Generate clusters
+    for(size_t ndx = 0; ndx < pt_cl.size(); ndx++){
+      clusters[pt_cl[ndx].second].push_back(pt_cl[ndx].first);
+    }
+    
+    //Calculate new lines
+    old_lines = new_lines;
+    new_lines.clear();
+    for(int ndx = 0; ndx < k; ndx++){
+      float slope, intercept;
+      DLSR(clusters[ndx], slope, intercept);
+      new_lines[ndx] = std::make_pair(slope, intercept);
+    }
+  }
+
+  //Check neighbors for cluster assignment correction
 
   //Find cluster assignment of neighbors
   for(size_t pc_ndx = 1; pc_ndx < (pt_cl.size() - 1); pc_ndx++){
