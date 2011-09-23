@@ -65,6 +65,7 @@ CMakeFiles/classifier.dir/src/classifier.o: /opt/ros/diamondback/stacks/ros_comm
 CMakeFiles/classifier.dir/src/classifier.o: /opt/ros/diamondback/stacks/ros_comm/clients/rospy/manifest.xml
 CMakeFiles/classifier.dir/src/classifier.o: /opt/ros/diamondback/ros/tools/rosclean/manifest.xml
 CMakeFiles/classifier.dir/src/classifier.o: /opt/ros/diamondback/stacks/ros_comm/tools/rosgraph/manifest.xml
+CMakeFiles/classifier.dir/src/classifier.o: /opt/ros/diamondback/stacks/ros_comm/tools/rosparam/manifest.xml
 CMakeFiles/classifier.dir/src/classifier.o: /opt/ros/diamondback/stacks/ros_comm/tools/rosmaster/manifest.xml
 CMakeFiles/classifier.dir/src/classifier.o: /opt/ros/diamondback/stacks/ros_comm/tools/rosout/manifest.xml
 CMakeFiles/classifier.dir/src/classifier.o: /opt/ros/diamondback/stacks/ros_comm/tools/roslaunch/manifest.xml

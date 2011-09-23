@@ -808,34 +808,12 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	  landmarks.push_back(temp_features[iter]);
 	}
       }
-      /*
-      else{
-	int k = 2;
-	std::vector< std::vector<Point> > clusters;
-	k_lines(k, vv_pts[ndx], clusters);
-	for(size_t iter = 0; iter < clusters.size(); iter++){
-	  temp_feature = produce_feature(clusters[iter]);
-	  if(temp_feature){
-	    landmarks.push_back(temp_feature);
-	  }
-	}
-       
-      }
-      */
+      
       std::cout << "Vector[" << ndx << "]:" << std::endl;
       for(size_t iter = 0; iter < vv_pts[ndx].size(); iter++){
 	std::cout << vv_pts[ndx][iter] << std::endl;
       }
-      /*
-      for(size_t ndx = 0; ndx < k; ndx++){
-	std::cout << "Cluster: " << ndx << std::endl;
-	std::cout << "Size: " << clusters[ndx].size();
-	for(int iter = 0; iter < clusters[ndx].size(); iter++){
-	  std::cout << clusters[ndx][iter];
-	}
-	std::cout << std::endl;
-      }
-      */
+      
       std::cout << std::endl;
     }
   }
@@ -843,14 +821,11 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
   bool comp_pair_second(std::pair<int, int > p1, std::pair<int, int > p2){
     return p1.second < p2.second;
   }
-  /*
-  void produce_collection(const sensor_msgs::LaserScan& scan, 
-			  std::vector<std::pair<std::vector<Feature*>, 
-						std::vector<std::vector<Point> >::iterator> >& prev_land, 
-			    std::vector<Feature*>& landmarks){
-
-    std::vector< std::vector<Point> > vv_pts;
-    std::vector<std::pair<Feature*, std::vector<std::vector<Point> >::iterator> > ftr_and_pts; 
+  
+  void Collection::produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks){
+    
+    std::vector<std::vector<Point> > vv_pts;
+    std::vector<std::pair<Feature*, std::vector<Point> > > ftr_and_pts; 
     std::vector<Feature*> temp_features;
     const float DIST_THRESH 6.0; //cm
     
@@ -862,9 +837,8 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       produce_feature(vv_pts[ndx], temp_features);
       if(temp_features.size()){
 	for(size_t iter = 0; iter < temp_features.size(); iter++){
-	  landmarks.push_back(temp_features[iter]);
-	  std::pair<
-	  ftr_and_pts.push_back();
+	  //	  landmarks.push_back(temp_features[iter]);
+	  ftr_and_pts.push_back(std::make_pair(temp_features[iter], vv_pts[ndx]));
 	}
       }
 
@@ -883,15 +857,16 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     // Associate the new hypothesis with the old ones
     std::pair<size_t, float> closest_landmark;
     closest_landmark.second = FLT_MAX;
-    for(size_t ndx = 0; ndx < landmarks.size(); ndx++){
+    for(size_t ndx = 0; ndx < ftr_and_pts.size(); ndx++){
       for(size_t iter = 0; iter < prev_land.size(); iter++){
-	float temp_distance = return_distance(landmarks[ndx]->get_center(), prev_land[iter][0]->get_center());
+	float temp_distance = return_distance(ftr_and_pts[ndx].first->get_center(), prev_land[iter].first[0]->get_center());
 	if((temp_distance < closest_landmark.second) && (temp_distance < DIST_THRESH)){
 	  closest_landmark.first = iter;
 	  closest_landmark.second = temp_distance;
 	}
       }
-      prev_land[closest_landmark.first].push_back(landmark[ndx]);
+      prev_land[closest_landmark.first].first.push_front(ftr_and_pts[ndx].first);
+      prev_land[closest_landmark.first].second.push_front(ftr_and_pts[ndx].second);
     }
     
     // Find the most popular object in each set and instantiate the output
@@ -922,7 +897,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     }
     
   }
-  */
+  
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters){
     std::vector< std::vector<Point> > vv_pts;
     

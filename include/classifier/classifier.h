@@ -79,6 +79,16 @@ namespace classifier{
     uint8_t type;
   };
 
+  class Collection{
+  public:
+    Collection();
+    void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks);
+  private:
+    //This vector contains pairs, representing previous landmarks. The landmarks are represented by pairs containing
+    //a vector of previous Feature hypotheses and their associated vector of Points
+    std::vector<std::pair<std::vector<Feature*>, std::vector<std::vector<Point> > > >& prev_land;
+  };
+
   std::ostream& operator<<(std::ostream& os, const std::vector<Feature*>& rhs);
   bool operator==(const std::vector<Point>& rhs, const std::vector<Point>& lhs);
   bool operator!=(const std::vector<Point>& rhs, const std::vector<Point>& lhs);
@@ -104,11 +114,7 @@ namespace classifier{
   bool comp_pair_second(std::pair<int, int > p1, std::pair<int, int > p2);
   //Feature* produce_feature(std::vector<Point> pts);
   void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks);
-  void produce_collection(const sensor_msgs::LaserScan& scan, 
-			  std::vector<std::pair<std::vector<Feature*>, 
-						std::vector<std::vector<Point> >::iterator> >& prev_land, 
-			  std::vector<Feature*>& landmarks);
-
+  
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters);
   //void produce_collection_from_points(std::vector<std::vector<Point> >& point_sets, std::vector<Feature*>& landmarks);
 }

@@ -243,8 +243,8 @@ clean: CMakeFiles/clean-test-results.dir/clean
 # Target rules for target CMakeFiles/publisher.dir
 
 # All Build rule for target.
-CMakeFiles/publisher.dir/all: CMakeFiles/classifier.dir/all
 CMakeFiles/publisher.dir/all: CMakeFiles/rosbuild_precompile.dir/all
+CMakeFiles/publisher.dir/all: CMakeFiles/classifier.dir/all
 	$(MAKE) -f CMakeFiles/publisher.dir/build.make CMakeFiles/publisher.dir/depend
 	$(MAKE) -f CMakeFiles/publisher.dir/build.make CMakeFiles/publisher.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/gbrook02/ros_tutorials/classifier/build/CMakeFiles  2
