@@ -86,7 +86,7 @@ namespace classifier{
   private:
     //This vector contains pairs, representing previous landmarks. The landmarks are represented by pairs containing
     //a vector of previous Feature hypotheses and their associated vector of Points
-    std::vector<std::pair<std::vector<Feature*>, std::vector<std::vector<Point> > > >& prev_land;
+    std::vector<std::pair<std::list<Feature*>, std::list<std::vector<Point> > > >& prev_land;
   };
 
   std::ostream& operator<<(std::ostream& os, const std::vector<Feature*>& rhs);

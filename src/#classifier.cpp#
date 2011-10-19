@@ -854,12 +854,17 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     // Take the majority vote of the landmark type from current and previous hypothesis
     // The last element of each vector is the oldest estimate
 
+    // If this is the first set of hypotheses, fill the previous landmarks with current landmarks
+    if(prev_land.empty()){
+      
+    }
+
     // Associate the new hypothesis with the old ones
     std::pair<size_t, float> closest_landmark;
     closest_landmark.second = FLT_MAX;
     for(size_t ndx = 0; ndx < ftr_and_pts.size(); ndx++){
       for(size_t iter = 0; iter < prev_land.size(); iter++){
-	float temp_distance = return_distance(ftr_and_pts[ndx].first->get_center(), prev_land[iter].first[0]->get_center());
+	float temp_distance = return_distance(ftr_and_pts[ndx].first->get_center(), prev_land[iter].first.begin->get_center());
 	if((temp_distance < closest_landmark.second) && (temp_distance < DIST_THRESH)){
 	  closest_landmark.first = iter;
 	  closest_landmark.second = temp_distance;
