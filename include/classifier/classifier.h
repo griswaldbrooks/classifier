@@ -3,6 +3,7 @@
 
 #include <sensor_msgs/LaserScan.h>
 #include <vector>
+#include <deque>
 #include <math.h>
 #include <iostream>
 #include <float.h>
@@ -83,10 +84,11 @@ namespace classifier{
   public:
     Collection();
     void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks);
-  private:
+    Feature* ret_ftr_ptr(unsigned int ftr_ndx, unsigned int t_ndx);
+   private:
     //This vector contains pairs, representing previous landmarks. The landmarks are represented by pairs containing
     //a vector of previous Feature hypotheses and their associated vector of Points
-    std::vector<std::pair<std::list<Feature*>, std::list<std::vector<Point> > > >& prev_land;
+    std::vector<std::pair<std::deque<Feature*>, std::deque<std::vector<Point> > > > prev_land;
   };
 
   std::ostream& operator<<(std::ostream& os, const std::vector<Feature*>& rhs);

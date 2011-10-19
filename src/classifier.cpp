@@ -821,7 +821,12 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
   bool comp_pair_second(std::pair<int, int > p1, std::pair<int, int > p2){
     return p1.second < p2.second;
   }
-  
+
+  Feature* Collection::ret_ftr_ptr(unsigned int ftr_ndx, unsigned int t_ndx){
+    return prev_land[(size_t)ftr_ndx].first[t_ndx];
+  }
+
+  /*  */
   void Collection::produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks){
     
     std::vector<std::vector<Point> > vv_pts;
@@ -854,32 +859,44 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     // Take the majority vote of the landmark type from current and previous hypothesis
     // The last element of each vector is the oldest estimate
 
-    // Associate the new hypothesis with the old ones
-    std::pair<size_t, float> closest_landmark;
-    closest_landmark.second = FLT_MAX;
-    for(size_t ndx = 0; ndx < ftr_and_pts.size(); ndx++){
-      for(size_t iter = 0; iter < prev_land.size(); iter++){
-	float temp_distance = return_distance(ftr_and_pts[ndx].first->get_center(), prev_land[iter].first[0]->get_center());
-	if((temp_distance < closest_landmark.second) && (temp_distance < DIST_THRESH)){
-	  closest_landmark.first = iter;
-	  closest_landmark.second = temp_distance;
-	}
+    // If this is the first set of hypotheses, fill the previous landmarks with current landmarks
+    if(prev_land.empty()){
+      for(size_t ndx = 0; ndx < ftr_and_pts.size(); ndx++){
+	std::deque<Feature*> ftr_list;
+	std::deque<std::vector<Point> > vpt_list;
+	ftr_list.push_back(ftr_and_pts[ndx].first);
+	vpt_list.push_back(ftr_and_pts[ndx].second);
+	prev_land.push_back(make_pair(ftr_list, vpt_list));
       }
-      prev_land[closest_landmark.first].first.push_front(ftr_and_pts[ndx].first);
-      prev_land[closest_landmark.first].second.push_front(ftr_and_pts[ndx].second);
     }
-    
+    else{
+      // Associate the new hypothesis with the old ones
+      std::pair<size_t, float> closest_landmark;
+      closest_landmark.second = FLT_MAX;
+      for(size_t ndx = 0; ndx < ftr_and_pts.size(); ndx++){
+	for(size_t iter = 0; iter < prev_land.size(); iter++){
+	  float temp_distance = return_distance(ftr_and_pts[ndx].first->get_center(), ret_ftr_ptr(ndx,0)->get_center());
+	  if((temp_distance < closest_landmark.second) && (temp_distance < DIST_THRESH)){
+	    closest_landmark.first = iter;
+	    closest_landmark.second = temp_distance;
+	  }
+	}
+	prev_land[closest_landmark.first].first.push_front(ftr_and_pts[ndx].first);
+	prev_land[closest_landmark.first].second.push_front(ftr_and_pts[ndx].second);
+      }
+    }
+
     // Find the most popular object in each set and instantiate the output
     // landmark set with that object type
-    landmark.clear();
-    std::vector<pair<int, int> > type_counts;
-    type_counts.push_back(pair<int, int>(CIRCLE, 0));
-    type_counts.push_back(pair<int, int>(LINE, 0));
+    landmarks.clear();
+    std::vector<std::pair<int, int> > type_counts;
+    type_counts.push_back(std::pair<int, int>(CIRCLE, 0));
+    type_counts.push_back(std::pair<int, int>(LINE, 0));
 
-    for(size_t ndx = 0; ndx < prev_land.size(); ndx++){
-      for(size_t iter = 0; iter < prev_land[ndx].size(); iter++){
+    for(size_t f_ndx = 0; ndx < prev_land.size(); f_ndx++){
+      for(int t_ndx = 0; t_ndx < (int)prev_land[f_ndx].first.size(); t_ndx++){
 	for(size_t type_iter = 0; type_iter < type_counts.size(); type_iter++){
-	  if(prev_land[ndx][iter]->get_type() == type_counts[type_iter].first){
+	  if(ret_ftr_ptr()->get_type() == type_counts[type_iter].first){
 	    type_counts[type_iter].second++;
 	    break;
 	  }  
@@ -895,9 +912,9 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	}
       }
     }
-    
+
   }
-  
+ 
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters){
     std::vector< std::vector<Point> > vv_pts;
     

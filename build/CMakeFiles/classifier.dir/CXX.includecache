@@ -11,6 +11,8 @@ sensor_msgs/LaserScan.h
 -
 vector
 -
+deque
+-
 math.h
 -
 iostream
