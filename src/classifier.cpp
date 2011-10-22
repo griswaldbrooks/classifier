@@ -85,7 +85,8 @@ namespace classifier{
     two_points.push_back(end2);
     return two_points;
   }
-
+  
+  Collection::Collection(){}
 
   std::ostream& operator<<(std::ostream& os, const Point& rhs){
     os << "(" << rhs.x << ", " << rhs.y << ")";
@@ -855,7 +856,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       }
       std::cout << std::endl;
     }
-    
+
     // Take the majority vote of the landmark type from current and previous hypothesis
     // The last element of each vector is the oldest estimate
 
@@ -867,22 +868,28 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	ftr_list.push_back(ftr_and_pts[ndx].first);
 	vpt_list.push_back(ftr_and_pts[ndx].second);
 	prev_land.push_back(make_pair(ftr_list, vpt_list));
+	ftr_list.clear();
+	vpt_list.clear();
       }
     }
     else{
       // Associate the new hypothesis with the old ones
       std::pair<size_t, float> closest_landmark;
       closest_landmark.second = FLT_MAX;
-      for(size_t ndx = 0; ndx < ftr_and_pts.size(); ndx++){
-	for(size_t iter = 0; iter < prev_land.size(); iter++){
-	  float temp_distance = return_distance(ftr_and_pts[ndx].first->get_center(), ret_ftr_ptr(ndx,0)->get_center());
+      for(size_t h_ndx = 0; h_ndx < ftr_and_pts.size(); h_ndx++){
+	std::cout<<"for h_ndx"<<std::endl;
+	for(size_t ftr_ndx = 0; ftr_ndx < prev_land.size(); ftr_ndx++){
+	  std::cout<<"for ftr_ndx"<<std::endl;
+	  std::cout<<"ftr_and_pts[h_ndx].first->get_center() "<< ftr_and_pts[h_ndx].first->get_center() <<std::endl;
+	  std::cout<<"ret_ftr_ptr(h_ndx,0)->get_center() " << ret_ftr_ptr(ftr_ndx,0)->get_center() <<std::endl;
+	  float temp_distance = return_distance(ftr_and_pts[h_ndx].first->get_center(), ret_ftr_ptr(ftr_ndx,0)->get_center());
 	  if((temp_distance < closest_landmark.second) && (temp_distance < DIST_THRESH)){
-	    closest_landmark.first = iter;
+	    closest_landmark.first = ftr_ndx;
 	    closest_landmark.second = temp_distance;
 	  }
 	}
-	prev_land[closest_landmark.first].first.push_front(ftr_and_pts[ndx].first);
-	prev_land[closest_landmark.first].second.push_front(ftr_and_pts[ndx].second);
+	prev_land[closest_landmark.first].first.push_front(ftr_and_pts[h_ndx].first);
+	prev_land[closest_landmark.first].second.push_front(ftr_and_pts[h_ndx].second);
       }
     }
 
@@ -893,10 +900,10 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     type_counts.push_back(std::pair<int, int>(CIRCLE, 0));
     type_counts.push_back(std::pair<int, int>(LINE, 0));
 
-    for(size_t f_ndx = 0; ndx < prev_land.size(); f_ndx++){
-      for(int t_ndx = 0; t_ndx < (int)prev_land[f_ndx].first.size(); t_ndx++){
+    for(size_t ftr_ndx = 0; ftr_ndx < prev_land.size(); ftr_ndx++){
+      for(int t_ndx = 0; t_ndx < (int)prev_land[ftr_ndx].first.size(); t_ndx++){
 	for(size_t type_iter = 0; type_iter < type_counts.size(); type_iter++){
-	  if(ret_ftr_ptr()->get_type() == type_counts[type_iter].first){
+	  if(ret_ftr_ptr(ftr_ndx,t_ndx)->get_type() == type_counts[type_iter].first){
 	    type_counts[type_iter].second++;
 	    break;
 	  }  
@@ -904,12 +911,19 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       
 	std::vector<std::pair<int, int> >::iterator max_type;
 	max_type = max_element(type_counts.begin(), type_counts.end(), comp_pair_second);
-	if(max_type->second() == CIRCLE){
-	  landmark.push_back(Circle(Point(0,0),0));
+	Feature* landmark = NULL;
+	if(max_type->first == CIRCLE){
+	  landmark = new Circle(prev_land[ftr_ndx].second[0]);
 	}
-	else if(max_type->second() == LINE){
-	  landmark.push_back(Line_seg(Point(0,0),Point(0,0)));
+	else if(max_type->first == LINE){
+	  landmark = new Line_seg(prev_land[ftr_ndx].second[0]);
 	}
+	if(landmark){
+	  landmarks.push_back(landmark);
+	  type_counts[0].second = 0;
+	  type_counts[1].second = 0;
+	}
+	else{std::cout << "NULL LANDMARK!!!" << "Max Type: "<< max_type->first <<std::endl;}
       }
     }
 

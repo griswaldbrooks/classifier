@@ -9,6 +9,7 @@ public:
   std::vector<visualization_msgs::Marker> circles;
   std::vector<visualization_msgs::Marker> v_pts;
   int id_counter;
+  classifier::Collection c1;
 
   Scan_Marker_Processor():id_counter(0){
 
@@ -77,7 +78,8 @@ public:
   void callBack(const sensor_msgs::LaserScan& scan){
 
     std::vector<classifier::Feature*> landmarks;
-    produce_collection(scan, landmarks);
+    //produce_collection(scan, landmarks);
+    c1.produce_collection(scan, landmarks);
 
     std::vector<std::vector<classifier::Point> > point_clusters;
     produce_cluster_points(scan, point_clusters);
