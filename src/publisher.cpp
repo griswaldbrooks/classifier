@@ -82,7 +82,7 @@ public:
     c1.produce_collection(scan, landmarks);
 
     std::vector<std::vector<classifier::Point> > point_clusters;
-    produce_cluster_points(scan, point_clusters);
+    //produce_cluster_points(scan, point_clusters);
     //produce_collection_from_points(point_clusters, landmarks);
 
     

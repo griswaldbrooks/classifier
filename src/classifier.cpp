@@ -271,14 +271,14 @@ namespace classifier{
       clusters[r_ndx].push_back(temp_set.back());
       temp_set.pop_back();
     }
-    std::cout << "Initial means: " << std::endl;
+    //std::cout << "Initial means: " << std::endl;
     //Generate means, reset clusters
     for(int iter = 0; iter < k; iter++){
       new_means[iter] = return_mean_point(clusters[iter]);
       std::cout << new_means[iter];
       clusters[iter].clear();
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
     
     //Start main loop
     while(old_means != new_means){
@@ -469,7 +469,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
   //Generate initial clusters via k means
   k_means(k, old_set, clusters);
 
-  std::cout << "Initial lines: " << std::endl;
+  //std::cout << "Initial lines: " << std::endl;
   //Generate lines, reset clusters
   for(int iter = 0; iter < k; iter++){
     float slope, intercept;
@@ -477,7 +477,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     new_lines[iter] = std::make_pair(slope, intercept);
     clusters[iter].clear();
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
   
   //Start main loop
   while(old_lines != new_lines){
@@ -850,11 +850,12 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 
      
      
-      std::cout << "Vector[" << ndx << "]:" << std::endl;
+      /*  std::cout << "Vector[" << ndx << "]:" << std::endl;
       for(size_t iter = 0; iter < vv_pts[ndx].size(); iter++){
 	std::cout << vv_pts[ndx][iter] << std::endl;
       }
       std::cout << std::endl;
+      */
     }
 
     // Take the majority vote of the landmark type from current and previous hypothesis
@@ -877,17 +878,14 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       std::pair<size_t, float> closest_landmark;
       closest_landmark.second = FLT_MAX;
       for(size_t h_ndx = 0; h_ndx < ftr_and_pts.size(); h_ndx++){
-	std::cout<<"for h_ndx"<<std::endl;
-	for(size_t ftr_ndx = 0; ftr_ndx < prev_land.size(); ftr_ndx++){
-	  std::cout<<"for ftr_ndx"<<std::endl;
-	  std::cout<<"ftr_and_pts[h_ndx].first->get_center() "<< ftr_and_pts[h_ndx].first->get_center() <<std::endl;
-	  std::cout<<"ret_ftr_ptr(h_ndx,0)->get_center() " << ret_ftr_ptr(ftr_ndx,0)->get_center() <<std::endl;
+    	for(size_t ftr_ndx = 0; ftr_ndx < prev_land.size(); ftr_ndx++){
 	  float temp_distance = return_distance(ftr_and_pts[h_ndx].first->get_center(), ret_ftr_ptr(ftr_ndx,0)->get_center());
 	  if((temp_distance < closest_landmark.second) && (temp_distance < DIST_THRESH)){
 	    closest_landmark.first = ftr_ndx;
 	    closest_landmark.second = temp_distance;
 	  }
 	}
+	std::cout << "Closest landmark: " << ret_ftr_ptr(closest_landmark.first,0)->get_center() << std::endl;
 	prev_land[closest_landmark.first].first.push_front(ftr_and_pts[h_ndx].first);
 	prev_land[closest_landmark.first].second.push_front(ftr_and_pts[h_ndx].second);
       }
@@ -908,23 +906,24 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	    break;
 	  }  
 	}
-      
-	std::vector<std::pair<int, int> >::iterator max_type;
-	max_type = max_element(type_counts.begin(), type_counts.end(), comp_pair_second);
-	Feature* landmark = NULL;
-	if(max_type->first == CIRCLE){
-	  landmark = new Circle(prev_land[ftr_ndx].second[0]);
-	}
-	else if(max_type->first == LINE){
-	  landmark = new Line_seg(prev_land[ftr_ndx].second[0]);
-	}
-	if(landmark){
-	  landmarks.push_back(landmark);
-	  type_counts[0].second = 0;
-	  type_counts[1].second = 0;
-	}
-	else{std::cout << "NULL LANDMARK!!!" << "Max Type: "<< max_type->first <<std::endl;}
       }
+      std::vector<std::pair<int, int> >::iterator max_type;
+      max_type = max_element(type_counts.begin(), type_counts.end(), comp_pair_second);
+      Feature* landmark = NULL;
+      if(max_type->first == CIRCLE){
+	landmark = new Circle(prev_land[ftr_ndx].second[0]);
+      }
+      else if(max_type->first == LINE){
+	landmark = new Line_seg(prev_land[ftr_ndx].second[0]);
+      }
+      if(landmark){
+	landmarks.push_back(landmark);
+	std::cout << "LANDMARK OUT: " << *landmark << std::endl;
+	type_counts[0].second = 0;
+	type_counts[1].second = 0;
+      }
+      else{std::cout << "NULL LANDMARK!!!" << "Max Type: "<< max_type->first <<std::endl;}
+      
     }
 
   }
