@@ -275,7 +275,7 @@ namespace classifier{
     //Generate means, reset clusters
     for(int iter = 0; iter < k; iter++){
       new_means[iter] = return_mean_point(clusters[iter]);
-      std::cout << new_means[iter];
+      //std::cout << new_means[iter];
       clusters[iter].clear();
     }
     //std::cout << std::endl;
@@ -800,7 +800,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     
     parse_scan(scan, vv_pts);
     
-    std::cout << "Number of Candidates: " << vv_pts.size() << std::endl;
+    //std::cout << "Number of Candidates: " << vv_pts.size() << std::endl;
 
     for(size_t ndx = 0; ndx < vv_pts.size(); ndx++){
       produce_feature(vv_pts[ndx], temp_features);
@@ -810,12 +810,12 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	}
       }
       
-      std::cout << "Vector[" << ndx << "]:" << std::endl;
-      for(size_t iter = 0; iter < vv_pts[ndx].size(); iter++){
-	std::cout << vv_pts[ndx][iter] << std::endl;
-      }
+      //std::cout << "Vector[" << ndx << "]:" << std::endl;
+      //for(size_t iter = 0; iter < vv_pts[ndx].size(); iter++){
+      //std::cout << vv_pts[ndx][iter] << std::endl;
+      //}
       
-      std::cout << std::endl;
+      //std::cout << std::endl;
     }
   }
 
@@ -829,7 +829,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 
   /*  */
   void Collection::produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks){
-    
+    const std::size_t WINDOW_SIZE = 3;
     std::vector<std::vector<Point> > vv_pts;
     std::vector<std::pair<Feature*, std::vector<Point> > > ftr_and_pts; 
     std::vector<Feature*> temp_features;
@@ -882,12 +882,18 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	  float temp_distance = return_distance(ftr_and_pts[h_ndx].first->get_center(), ret_ftr_ptr(ftr_ndx,0)->get_center());
 	  if((temp_distance < closest_landmark.second) && (temp_distance < DIST_THRESH)){
 	    closest_landmark.first = ftr_ndx;
+	    std::cout << "Feature INDEX: " << ftr_ndx << std::endl;
 	    closest_landmark.second = temp_distance;
 	  }
 	}
-	std::cout << "Closest landmark: " << ret_ftr_ptr(closest_landmark.first,0)->get_center() << std::endl;
+	//std::cout << "Closest landmark: " << ret_ftr_ptr(closest_landmark.first,0)->get_center() << std::endl;
 	prev_land[closest_landmark.first].first.push_front(ftr_and_pts[h_ndx].first);
 	prev_land[closest_landmark.first].second.push_front(ftr_and_pts[h_ndx].second);
+	std::cout << "Feature INDEX: " << closest_landmark.first << std::endl;
+	if(prev_land[closest_landmark.first].first.size() > WINDOW_SIZE){
+	  prev_land[closest_landmark.first].first.pop_back();
+	  prev_land[closest_landmark.first].second.pop_back();
+	}
       }
     }
 
@@ -918,14 +924,15 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       }
       if(landmark){
 	landmarks.push_back(landmark);
-	std::cout << "LANDMARK OUT: " << *landmark << std::endl;
+	//std::cout << "LANDMARK OUT: " << *landmark << std::endl;
 	type_counts[0].second = 0;
 	type_counts[1].second = 0;
       }
       else{std::cout << "NULL LANDMARK!!!" << "Max Type: "<< max_type->first <<std::endl;}
       
     }
-
+    std::cout << "Number of OUTPUT LANDMARKS: " << landmarks.size() << std::endl;
+    //    std::cout << "LANDMARKS::::::::" << std::endl << landmarks << std::endl;
   }
  
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters){
@@ -934,7 +941,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     
     parse_scan(scan, vv_pts);
     
-    std::cout << "Number of Candidates: " << vv_pts.size() << std::endl;
+    std::cout << "CLPTS: Number of Candidates: " << vv_pts.size() << std::endl;
     point_clusters.clear();
     
     for(size_t ndx = 0; ndx < vv_pts.size(); ndx++){

@@ -86,8 +86,8 @@ public:
     //produce_collection_from_points(point_clusters, landmarks);
 
     
-    std::cout << "Number of Landmarks: " << landmarks.size() << std::endl;
-    std::cout << landmarks << std::endl;
+    //std::cout << "Number of Landmarks: " << landmarks.size() << std::endl;
+    //std::cout << landmarks << std::endl;
     reset_id_counter();
     line_list.points.clear();
     circles.clear();
