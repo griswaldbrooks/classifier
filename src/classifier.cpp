@@ -828,12 +828,13 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
   }
 
   /*  */
+
   void Collection::produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks){
     const std::size_t WINDOW_SIZE = 3;
     std::vector<std::vector<Point> > vv_pts;
     std::vector<std::pair<Feature*, std::vector<Point> > > ftr_and_pts; 
     std::vector<Feature*> temp_features;
-    const float DIST_THRESH = 6.0; //cm
+    const float DIST_THRESH = 20.0; //cm
     
     parse_scan(scan, vv_pts);
     
@@ -876,6 +877,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     else{
       // Associate the new hypothesis with the old ones
       std::pair<size_t, float> closest_landmark;
+      closest_landmark.first = NO_ASSOC;
       closest_landmark.second = FLT_MAX;
       for(size_t h_ndx = 0; h_ndx < ftr_and_pts.size(); h_ndx++){
     	for(size_t ftr_ndx = 0; ftr_ndx < prev_land.size(); ftr_ndx++){
@@ -886,13 +888,25 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	    closest_landmark.second = temp_distance;
 	  }
 	}
-	//std::cout << "Closest landmark: " << ret_ftr_ptr(closest_landmark.first,0)->get_center() << std::endl;
-	prev_land[closest_landmark.first].first.push_front(ftr_and_pts[h_ndx].first);
-	prev_land[closest_landmark.first].second.push_front(ftr_and_pts[h_ndx].second);
-	std::cout << "Feature INDEX: " << closest_landmark.first << std::endl;
-	if(prev_land[closest_landmark.first].first.size() > WINDOW_SIZE){
-	  prev_land[closest_landmark.first].first.pop_back();
-	  prev_land[closest_landmark.first].second.pop_back();
+	// If an association was not made, add this new landmark to the list
+	if(closest_landmark.first == NO_ASSOC){
+	  std::deque<Feature*> ftr_list;
+	  std::deque<std::vector<Point> > vpt_list;
+	  ftr_list.push_back(ftr_and_pts[h_ndx].first);
+	  vpt_list.push_back(ftr_and_pts[h_ndx].second);
+	  prev_land.push_back(make_pair(ftr_list, vpt_list));
+	  std::cout << "Feature INDEX: NEW" << std::endl;
+	}
+	else{
+	  prev_land[closest_landmark.first].first.push_front(ftr_and_pts[h_ndx].first);
+	  prev_land[closest_landmark.first].second.push_front(ftr_and_pts[h_ndx].second);
+	
+	  std::cout << "Feature INDEX: " << closest_landmark.first << std::endl;
+	  if(prev_land[closest_landmark.first].first.size() > WINDOW_SIZE){
+	    prev_land[closest_landmark.first].first.pop_back();
+	    prev_land[closest_landmark.first].second.pop_back();
+	  }
+	
 	}
       }
     }

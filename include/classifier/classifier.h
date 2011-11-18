@@ -10,6 +10,7 @@
 
 #define CIRCLE 1
 #define LINE   2
+#define NO_ASSOC -1
 
 namespace classifier{
   
