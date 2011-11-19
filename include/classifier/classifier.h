@@ -85,11 +85,22 @@ namespace classifier{
   public:
     Collection();
     void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks);
-    Feature* ret_ftr_ptr(unsigned int ftr_ndx, unsigned int t_ndx);
+    Feature* ret_ftr_ptr(std::vector<std::pair<std::deque<Feature*>, std::deque<std::vector<Point> > > >& hypos,
+			 unsigned int ftr_ndx, unsigned int t_ndx);
    private:
     //This vector contains pairs, representing previous landmarks. The landmarks are represented by pairs containing
     //a vector of previous Feature hypotheses and their associated vector of Points
     std::vector<std::pair<std::deque<Feature*>, std::deque<std::vector<Point> > > > prev_land;
+    std::vector<std::pair<Feature*, std::vector<Point> > > current_hypos;
+    std::vector<std::vector<Point> > vv_pts;
+    void generate_hypotheses(std::vector<std::vector<Point> >& vv_pts, std::vector<std::pair<Feature*, 
+			   std::vector<Point> > >& ftr_and_pts);
+    void associate_hypotheses(std::vector<std::pair<std::deque<Feature*>, std::deque<std::vector<Point> > > >& past_hypos, 
+			      std::vector<std::pair<Feature*, std::vector<Point> > >& current_hypos);
+    void estimator(std::vector<std::pair<std::deque<Feature*>, std::deque<std::vector<Point> > > >& hypos, 
+		   std::vector<Feature*>& landmarks);
+    void pruner(std::vector<std::pair<std::deque<Feature*>, std::deque<std::vector<Point> > > >& hypos, 
+		unsigned int window_size);
   };
 
   std::ostream& operator<<(std::ostream& os, const std::vector<Feature*>& rhs);

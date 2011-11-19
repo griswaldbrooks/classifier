@@ -604,50 +604,6 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     return var_orth;
   }
 
-  /*
-    bool is_circle(const std::vector<Point>& pts, Feature*& ftr_ptr){
-    Point pt;
-    const float RADIUS_THRESH = 60.0; //cm
-    const float VAR_THRESH = 1.5; //cm
-    float var_orth = 0;
-    Circle c1 = circle_regressor(pts);
-
-    for(float ndx = 1; ndx < (pts.size() + 1); ndx++){
-      pt = return_point_circle(c1, pts[ndx-1]);
-      var_orth = (1/ndx)*(pow((pt.x - pts[ndx-1].x), 2) + pow((pt.y - pts[ndx-1].y), 2)) + ((ndx-1)/ndx)*var_orth;
-    }
-    
-    if((c1.get_radius() < RADIUS_THRESH) && (var_orth < VAR_THRESH)){ 
-      ftr_ptr = new Circle(c1.get_center(), c1.get_radius());
-      return true; 
-    }
-    else{ return false; }
-  }
-   */
-  /*
-  bool is_circle(const std::vector<Point>& pts){
-    const float RADIUS_THRESH = 60.0; //cm
-    const float VAR_THRESH = 9.0; //cm
-    std::vector<Point> three_pts;
-    Point center_est;
-    float radius_est, radius_avg, radius_var;
-
-    //Calculate average radius and variance
-    for(float ndx = 1; ndx < (pts.size() - 1); ndx++){
-      three_pts.clear();
-      three_pts.push_back(pts[ndx - 1]);
-      three_pts.push_back(pts[ndx]);
-      three_pts.push_back(pts[ndx + 1]);
-
-      calc_center_radius(three_pts, center_est, radius_est);
-      
-      radius_avg = (1/ndx)*radius_est + ((ndx - 1)/ndx)*radius_avg;
-      radius_var = (1/ndx)*pow((radius_avg - radius_est), 2) + ((ndx-1)/ndx)*radius_var;
-    }
-    if((radius_avg < RADIUS_THRESH) && (radius_var < VAR_THRESH)){ return true; }
-    else{ return false; }
-  }
-  */
 
   void parse_scan(const sensor_msgs::LaserScan& scan, std::vector< std::vector<Point> >& vv_pts){
     const float SEP_THRESH = 0.125; // meters
@@ -763,36 +719,7 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     }
   }
 
-  /*
-  void produce_feature(std::vector<Point> pts, std::vector<Feature*>& features){
-    features.clear();
-    Feature* ftr_ptr = NULL;
-    if(is_line(pts, ftr_ptr)){
-      features.push_back(ftr_ptr);
-    }
-    
-    else if(is_circle(pts, ftr_ptr)){
-      features.push_back(ftr_ptr);
-    }
-    else if(is_multiple_lines(2, pts, features)){
-
-    }
-  }
-  */ 
-  /*
-  Feature* produce_feature(std::vector<Point> pts){
-    Feature* ftr_ptr = NULL;
-    if(is_line(pts, ftr_ptr)){
-      //return new Line_seg(pts);
-      //return ftr_ptr;
-    }
-    else if(is_circle(pts, ftr_ptr)){
-      //return new Circle(pts);
-      //return ftr_ptr;
-    }
-    return ftr_ptr;
-  }
-  */
+ 
 
   void produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks){
     std::vector< std::vector<Point> > vv_pts;
@@ -823,53 +750,43 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     return p1.second < p2.second;
   }
 
-  Feature* Collection::ret_ftr_ptr(unsigned int ftr_ndx, unsigned int t_ndx){
-    return prev_land[(size_t)ftr_ndx].first[t_ndx];
+  Feature* Collection::ret_ftr_ptr(std::vector<std::pair<std::deque<Feature*>, 
+							 std::deque<std::vector<Point> > > >& hypos,
+				   unsigned int ftr_ndx, unsigned int t_ndx){
+    return hypos[(size_t)ftr_ndx].first[t_ndx];
   }
 
-  /*  */
-
-  void Collection::produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks){
-    const std::size_t WINDOW_SIZE = 3;
-    std::vector<std::vector<Point> > vv_pts;
-    std::vector<std::pair<Feature*, std::vector<Point> > > ftr_and_pts; 
-    std::vector<Feature*> temp_features;
-    const float DIST_THRESH = 20.0; //cm
+  void Collection::generate_hypotheses(std::vector<std::vector<Point> >& vv_pts, 
+			   std::vector<std::pair<Feature*, std::vector<Point> > >& ftr_and_pts){
     
-    parse_scan(scan, vv_pts);
-    
-    std::cout << "Number of Candidates: " << vv_pts.size() << std::endl;
+    std::vector<Feature*> temp_features; //Typically, the size of temp_features will be 1 or 2
+    ftr_and_pts.clear();
 
     for(size_t ndx = 0; ndx < vv_pts.size(); ndx++){
       produce_feature(vv_pts[ndx], temp_features);
       if(temp_features.size()){
 	for(size_t iter = 0; iter < temp_features.size(); iter++){
-	  //	  landmarks.push_back(temp_features[iter]);
 	  ftr_and_pts.push_back(std::make_pair(temp_features[iter], vv_pts[ndx]));
 	}
       }
-
-     
-     
-      /*  std::cout << "Vector[" << ndx << "]:" << std::endl;
-      for(size_t iter = 0; iter < vv_pts[ndx].size(); iter++){
-	std::cout << vv_pts[ndx][iter] << std::endl;
-      }
-      std::cout << std::endl;
-      */
     }
 
-    // Take the majority vote of the landmark type from current and previous hypothesis
+  }
+
+  void Collection::associate_hypotheses(std::vector<std::pair<std::deque<Feature*>, 
+							      std::deque<std::vector<Point> > > >& past_hypos, 
+					std::vector<std::pair<Feature*, std::vector<Point> > >& current_hypos){
+    const float DIST_THRESH = 20.0; //cm
     // The last element of each vector is the oldest estimate
 
-    // If this is the first set of hypotheses, fill the previous landmarks with current landmarks
-    if(prev_land.empty()){
-      for(size_t ndx = 0; ndx < ftr_and_pts.size(); ndx++){
+    // If this is the first set of hypotheses, fill the previous hypotheses with current hypotheses
+    if(past_hypos.empty()){
+      for(size_t ndx = 0; ndx < current_hypos.size(); ndx++){
 	std::deque<Feature*> ftr_list;
 	std::deque<std::vector<Point> > vpt_list;
-	ftr_list.push_back(ftr_and_pts[ndx].first);
-	vpt_list.push_back(ftr_and_pts[ndx].second);
-	prev_land.push_back(make_pair(ftr_list, vpt_list));
+	ftr_list.push_back(current_hypos[ndx].first);
+	vpt_list.push_back(current_hypos[ndx].second);
+	past_hypos.push_back(make_pair(ftr_list, vpt_list));
 	ftr_list.clear();
 	vpt_list.clear();
       }
@@ -879,12 +796,14 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       std::pair<size_t, float> closest_landmark;
       closest_landmark.first = NO_ASSOC;
       closest_landmark.second = FLT_MAX;
-      for(size_t h_ndx = 0; h_ndx < ftr_and_pts.size(); h_ndx++){
-    	for(size_t ftr_ndx = 0; ftr_ndx < prev_land.size(); ftr_ndx++){
-	  float temp_distance = return_distance(ftr_and_pts[h_ndx].first->get_center(), ret_ftr_ptr(ftr_ndx,0)->get_center());
+      for(size_t h_ndx = 0; h_ndx < current_hypos.size(); h_ndx++){
+    	for(size_t ftr_ndx = 0; ftr_ndx < past_hypos.size(); ftr_ndx++){
+
+	  float temp_distance = return_distance(current_hypos[h_ndx].first->get_center(), 
+						ret_ftr_ptr(past_hypos,ftr_ndx,0)->get_center());
+
 	  if((temp_distance < closest_landmark.second) && (temp_distance < DIST_THRESH)){
 	    closest_landmark.first = ftr_ndx;
-	    std::cout << "Feature INDEX: " << ftr_ndx << std::endl;
 	    closest_landmark.second = temp_distance;
 	  }
 	}
@@ -892,24 +811,26 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
 	if(closest_landmark.first == NO_ASSOC){
 	  std::deque<Feature*> ftr_list;
 	  std::deque<std::vector<Point> > vpt_list;
-	  ftr_list.push_back(ftr_and_pts[h_ndx].first);
-	  vpt_list.push_back(ftr_and_pts[h_ndx].second);
-	  prev_land.push_back(make_pair(ftr_list, vpt_list));
+	  ftr_list.push_back(current_hypos[h_ndx].first);
+	  vpt_list.push_back(current_hypos[h_ndx].second);
+	  past_hypos.push_back(make_pair(ftr_list, vpt_list));
 	  std::cout << "Feature INDEX: NEW" << std::endl;
 	}
 	else{
-	  prev_land[closest_landmark.first].first.push_front(ftr_and_pts[h_ndx].first);
-	  prev_land[closest_landmark.first].second.push_front(ftr_and_pts[h_ndx].second);
+	  past_hypos[closest_landmark.first].first.push_front(current_hypos[h_ndx].first);
+	  past_hypos[closest_landmark.first].second.push_front(current_hypos[h_ndx].second);
 	
 	  std::cout << "Feature INDEX: " << closest_landmark.first << std::endl;
-	  if(prev_land[closest_landmark.first].first.size() > WINDOW_SIZE){
-	    prev_land[closest_landmark.first].first.pop_back();
-	    prev_land[closest_landmark.first].second.pop_back();
-	  }
-	
 	}
+      
       }
     }
+  }
+
+  void Collection::estimator(std::vector<std::pair<std::deque<Feature*>, std::deque<std::vector<Point> > > >& hypos, 
+		 std::vector<Feature*>& landmarks){
+
+    // Take the majority vote of the landmark type from current and previous hypothesis
 
     // Find the most popular object in each set and instantiate the output
     // landmark set with that object type
@@ -918,10 +839,10 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
     type_counts.push_back(std::pair<int, int>(CIRCLE, 0));
     type_counts.push_back(std::pair<int, int>(LINE, 0));
 
-    for(size_t ftr_ndx = 0; ftr_ndx < prev_land.size(); ftr_ndx++){
-      for(int t_ndx = 0; t_ndx < (int)prev_land[ftr_ndx].first.size(); t_ndx++){
+    for(size_t ftr_ndx = 0; ftr_ndx < hypos.size(); ftr_ndx++){
+      for(int t_ndx = 0; t_ndx < (int)hypos[ftr_ndx].first.size(); t_ndx++){
 	for(size_t type_iter = 0; type_iter < type_counts.size(); type_iter++){
-	  if(ret_ftr_ptr(ftr_ndx,t_ndx)->get_type() == type_counts[type_iter].first){
+	  if(ret_ftr_ptr(hypos,ftr_ndx,t_ndx)->get_type() == type_counts[type_iter].first){
 	    type_counts[type_iter].second++;
 	    break;
 	  }  
@@ -938,7 +859,6 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       }
       if(landmark){
 	landmarks.push_back(landmark);
-	//std::cout << "LANDMARK OUT: " << *landmark << std::endl;
 	type_counts[0].second = 0;
 	type_counts[1].second = 0;
       }
@@ -946,7 +866,40 @@ void k_lines(int k, const std::vector<Point>& old_set, std::vector< std::vector<
       
     }
     std::cout << "Number of OUTPUT LANDMARKS: " << landmarks.size() << std::endl;
-    //    std::cout << "LANDMARKS::::::::" << std::endl << landmarks << std::endl;
+    //    std::cout << "LANDMARKS::::::::" << std::endl << landmarks << std::endl;  
+
+}
+
+  void Collection::pruner(std::vector<std::pair<std::deque<Feature*>, std::deque<std::vector<Point> > > >& hypos, 
+	      unsigned int window_size){
+
+    for(size_t h_ndx = 0; h_ndx < hypos.size(); h_ndx++){
+      if(hypos[h_ndx].first.size() > window_size){
+	hypos[h_ndx].first.pop_back();
+	hypos[h_ndx].second.pop_back();
+      }
+    }
+
+  }
+
+
+  void Collection::produce_collection(const sensor_msgs::LaserScan& scan, std::vector<Feature*>& landmarks){
+    const std::size_t WINDOW_SIZE = 3;
+    
+    vv_pts.clear();
+    
+    parse_scan(scan, vv_pts);
+    
+    std::cout << "Number of Candidates: " << vv_pts.size() << std::endl;
+
+    generate_hypotheses(vv_pts, current_hypos);
+     
+    associate_hypotheses(prev_land, current_hypos);
+
+    estimator(prev_land, landmarks);
+
+    pruner(prev_land, WINDOW_SIZE);
+     
   }
  
   void produce_cluster_points(const sensor_msgs::LaserScan& scan, std::vector<std::vector<Point> >& point_clusters){
